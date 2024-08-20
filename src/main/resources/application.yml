@@ -1,0 +1,36 @@
+spring:
+  profiles:
+    group:
+      "local" : "local"
+    active : local
+  security:
+    oauth2:
+      client:
+        registration:
+          discord:
+            client-id: "1269946920508592161"
+            client-secret: "bg9qw7EL6geO7RYPiQKKO1f6m60vnyar"
+            client-authentication-method: POST
+            provider: discord
+            client-name: Discord
+            authorization-grant-type: authorization_code
+            redirect-uri: "${APP_BASE_URL}/login/oauth2/code/{registrationId}"
+            scope:
+              - email
+              - identify
+        provider:
+          discord:
+            authorization-uri: https://discord.com/oauth2/authorize
+            token-uri: https://discord.com/api/oauth2/token
+            user-info-uri: https://discord.com/api/users/@me
+            user-name-attribute: username
+  application:
+    name: "oauth-demo-backend"
+
+jwt:
+  secret-key: "M3GvWMnjsamzQfqP5C5d6fwOk9IfDN11SetQlMefJOSz7kNYxDHfjpgmGUlwE7TRWdyW3CoBOSsQE4Zq0Yc2yp9rRqIBFiF9HyOD8rQI8heoskuUaWuKcaNAVAJi6mP1MiZfmxLUZjpyBkBK"
+
+logging:
+  level:
+    org.springframework.security: DEBUG
+#    root: debug
