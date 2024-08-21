@@ -1,6 +1,8 @@
 package me.cocoblue.oauthdemo.config;
 
+//import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import me.cocoblue.oauthdemo.service.CustomOAuth2UserService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
@@ -13,17 +15,17 @@ import org.springframework.security.oauth2.client.endpoint.OAuth2AccessTokenResp
 import org.springframework.security.oauth2.client.endpoint.OAuth2AuthorizationCodeGrantRequest;
 import org.springframework.security.oauth2.client.endpoint.OAuth2AuthorizationCodeGrantRequestEntityConverter;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
-import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
-import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
-import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequestEntityConverter;
-import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
-import org.springframework.security.oauth2.core.user.OAuth2User;
+import org.springframework.security.oauth2.client.web.DefaultOAuth2AuthorizationRequestResolver;
+import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestResolver;
+import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
 @RequiredArgsConstructor
 public class SecurityConfig {
+
   private final ClientRegistrationRepository clientRegistrationRepository;
+  private final CustomOAuth2UserService customOAuth2UserService;
 
   @Bean
   public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -39,7 +41,7 @@ public class SecurityConfig {
                 tokenEndpoint.accessTokenResponseClient(accessTokenResponseClient())
             )
             .userInfoEndpoint(userInfoEndpoint ->
-                userInfoEndpoint.userService(userService())
+                userInfoEndpoint.userService(customOAuth2UserService)
             )
         );
 
@@ -60,34 +62,19 @@ public class SecurityConfig {
     return client;
   }
 
-  @Bean
-  public OAuth2UserService<OAuth2UserRequest, OAuth2User> userService() {
-    DefaultOAuth2UserService service = new DefaultOAuth2UserService();
-
-    service.setRequestEntityConverter(new OAuth2UserRequestEntityConverter() {
-      @Override
-      public RequestEntity<?> convert(OAuth2UserRequest userRequest) {
-        return withUserAgent(super.convert(userRequest));
-      }
-    });
-
-    return service;
-  }
-
   private RequestEntity<?> withUserAgent(RequestEntity<?> requestEntity) {
-    // 기존 RequestEntity의 메서드, URL, 헤더, 바디 정보를 사용하여 새로 구성
     return new RequestEntity<>(
-        requestEntity.getBody(), // 기존 바디 사용
-        addUserAgentHeader(requestEntity.getHeaders()), // User-Agent 헤더 추가
-        requestEntity.getMethod(), // 기존 메서드 사용 (GET, POST 등)
-        requestEntity.getUrl() // 기존 URL 사용
+        requestEntity.getBody(),
+        addUserAgentHeader(requestEntity.getHeaders()),
+        requestEntity.getMethod(),
+        requestEntity.getUrl()
     );
   }
 
   private HttpHeaders addUserAgentHeader(HttpHeaders headers) {
     HttpHeaders newHeaders = new HttpHeaders();
-    newHeaders.putAll(headers); // 기존 헤더 복사
-    newHeaders.set("User-Agent", "DISCORD_BOT_USER_AGENT"); // User-Agent 헤더 추가
+    newHeaders.putAll(headers);
+    newHeaders.set("User-Agent", "DISCORD_BOT_USER_AGENT");
     return newHeaders;
   }
 }

@@ -2,11 +2,10 @@ package me.cocoblue.oauthdemo.domain;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
-import jakarta.persistence.PrePersist;
-import jakarta.persistence.PreUpdate;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.MapsId;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -22,24 +21,22 @@ import org.hibernate.annotations.UpdateTimestamp;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "user")
-public class UserEntity implements Serializable {
+@Table(name = "token")
+public class TokenEntity implements Serializable {
   @Id
   @Column(name = "id", nullable = false)
   private String id;
 
-  @Column(name = "username", nullable = false)
-  private String username;
+  @OneToOne
+  @MapsId
+  @JoinColumn(name = "id")
+  private UserEntity user;
 
-  @Column(name = "nickname")
-  private String nickname;
+  @Column(name = "access_token", nullable = false)
+  private String accessToken;
 
-  @Column(name = "profile_image")
-  private String profileImage;
-
-  @Enumerated(EnumType.STRING)
-  @Column(name = "role")
-  private UserRole userRole = UserRole.USER;
+  @Column(name = "refresh_token", nullable = false)
+  private String refreshToken;
 
   @CreationTimestamp
   @Column(name = "created_at", nullable = false)
@@ -48,12 +45,4 @@ public class UserEntity implements Serializable {
   @UpdateTimestamp
   @Column(name = "updated_at", nullable = false)
   private LocalDateTime updatedAt;
-
-  @PrePersist
-  @PreUpdate
-  public void prePersistOrUpdate() {
-    if (this.nickname != null && this.nickname.isBlank()) {
-      this.nickname = null;
-    }
-  }
 }
