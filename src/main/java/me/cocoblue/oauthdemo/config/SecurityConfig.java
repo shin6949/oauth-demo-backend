@@ -2,6 +2,8 @@ package me.cocoblue.oauthdemo.config;
 
 //import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import me.cocoblue.oauthdemo.handler.LoginFailureHandler;
+import me.cocoblue.oauthdemo.handler.LoginSuccessHandler;
 import me.cocoblue.oauthdemo.service.CustomOAuth2UserService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -10,6 +12,7 @@ import org.springframework.http.RequestEntity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer.FrameOptionsConfig;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.client.endpoint.DefaultAuthorizationCodeTokenResponseClient;
 import org.springframework.security.oauth2.client.endpoint.OAuth2AccessTokenResponseClient;
 import org.springframework.security.oauth2.client.endpoint.OAuth2AuthorizationCodeGrantRequest;
@@ -19,6 +22,7 @@ import org.springframework.security.oauth2.client.web.DefaultOAuth2Authorization
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestResolver;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.logout.LogoutHandler;
 
 @Configuration
 @RequiredArgsConstructor
@@ -36,6 +40,7 @@ public class SecurityConfig {
         .headers(headers -> headers
             .frameOptions(FrameOptionsConfig::disable)
         )
+        .sessionManagement(sessions -> sessions.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
         .oauth2Login(oauth2 -> oauth2
             .tokenEndpoint(tokenEndpoint ->
                 tokenEndpoint.accessTokenResponseClient(accessTokenResponseClient())
@@ -43,10 +48,26 @@ public class SecurityConfig {
             .userInfoEndpoint(userInfoEndpoint ->
                 userInfoEndpoint.userService(customOAuth2UserService)
             )
+            .successHandler(loginSuccessHandler())
+        )
+        .authorizeHttpRequests(authorize -> authorize
+            .requestMatchers("/", "/css/**", "/images/**", "/js/**", "/favicon.ico", "/h2-console/**").permitAll()
+            .anyRequest().authenticated()
         );
 
     return http.build();
   }
+
+  @Bean
+  public LoginSuccessHandler loginSuccessHandler() {
+    return new LoginSuccessHandler();
+  }
+
+  @Bean
+  public LoginFailureHandler loginFailureHandler() {
+    return new LoginFailureHandler();
+  }
+
 
   @Bean
   public OAuth2AccessTokenResponseClient<OAuth2AuthorizationCodeGrantRequest> accessTokenResponseClient() {

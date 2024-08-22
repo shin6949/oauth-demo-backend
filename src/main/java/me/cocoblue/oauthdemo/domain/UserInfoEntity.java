@@ -22,8 +22,8 @@ import org.hibernate.annotations.UpdateTimestamp;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "user")
-public class UserEntity implements Serializable {
+@Table(name = "user_info")
+public class UserInfoEntity implements Serializable {
   @Id
   @Column(name = "id", nullable = false)
   private String id;

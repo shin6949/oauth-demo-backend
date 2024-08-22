@@ -30,12 +30,12 @@ public class TokenEntity implements Serializable {
   @OneToOne
   @MapsId
   @JoinColumn(name = "id")
-  private UserEntity user;
+  private UserInfoEntity user;
 
-  @Column(name = "access_token", nullable = false)
+  @Column(name = "access_token")
   private String accessToken;
 
-  @Column(name = "refresh_token", nullable = false)
+  @Column(name = "refresh_token")
   private String refreshToken;
 
   @CreationTimestamp

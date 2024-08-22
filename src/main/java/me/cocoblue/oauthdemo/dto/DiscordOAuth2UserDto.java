@@ -5,8 +5,10 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import me.cocoblue.oauthdemo.domain.UserEntity;
+import lombok.extern.log4j.Log4j2;
+import me.cocoblue.oauthdemo.domain.UserInfoEntity;
 
+@Log4j2
 @Data
 @Builder
 @NoArgsConstructor
@@ -14,11 +16,11 @@ import me.cocoblue.oauthdemo.domain.UserEntity;
 public class DiscordOAuth2UserDto {
   private String id;
   private String username;
-  private Integer discriminator;
+  private String discriminator;
   private Integer flags;
   private Integer publicFlags;
   private String banner;
-  private String accentColor;
+  private Integer accentColor;
   private String globalName;
   private String bannerColor;
   private String clan;
@@ -31,13 +33,15 @@ public class DiscordOAuth2UserDto {
   private String refreshToken;
 
   public DiscordOAuth2UserDto(Map<String, Object> oauthAttributes) {
+    log.info("oauthAttributes: {}", oauthAttributes);
+
     this.id = (String) oauthAttributes.get("id");
     this.username = (String) oauthAttributes.get("username");
-    this.discriminator = (Integer) oauthAttributes.get("discriminator");
+    this.discriminator = (String) oauthAttributes.get("discriminator");
     this.flags = (Integer) oauthAttributes.get("flags");
     this.publicFlags = (Integer) oauthAttributes.get("public_flags");
     this.banner = (String) oauthAttributes.get("banner");
-    this.accentColor = (String) oauthAttributes.get("accent_color");
+    this.accentColor = (Integer) oauthAttributes.get("accent_color");
     this.globalName = (String) oauthAttributes.get("global_name");
     this.bannerColor = (String) oauthAttributes.get("banner_color");
     this.clan = (String) oauthAttributes.get("clan");
@@ -58,8 +62,8 @@ public class DiscordOAuth2UserDto {
     return String.format("https://cdn.discordapp.com/avatars/%s/%s?size=480", getId(), avatarId);
   }
 
-  public UserEntity toEntity() {
-    return UserEntity.builder()
+  public UserInfoEntity toEntity() {
+    return UserInfoEntity.builder()
         .id(getId())
         .username(getUsername())
         .nickname(getGlobalName())
