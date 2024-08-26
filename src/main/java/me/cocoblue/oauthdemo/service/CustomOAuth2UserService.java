@@ -6,9 +6,9 @@ import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import me.cocoblue.oauthdemo.domain.TokenEntity;
+import me.cocoblue.oauthdemo.domain.TokenRepository;
 import me.cocoblue.oauthdemo.domain.UserInfoEntity;
 import me.cocoblue.oauthdemo.domain.UserRepository;
-import me.cocoblue.oauthdemo.domain.TokenRepository;
 import me.cocoblue.oauthdemo.dto.DiscordOAuth2UserDto;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
@@ -33,7 +33,9 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
     @Override
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
         log.debug("Discord OAuth2 로그인 요청 진입");
+        log.debug("userRequest: {}", userRequest.getAdditionalParameters());
         log.debug("Access Token: {}", userRequest.getAccessToken().getTokenValue());
+        log.debug("Access Token Expires At: {}", userRequest.getAccessToken().getExpiresAt());
 
         // DefaultOAuth2UserService를 통해 OAuth2User 정보 가져오기
         OAuth2UserService<OAuth2UserRequest, OAuth2User> delegate = new DefaultOAuth2UserService();
