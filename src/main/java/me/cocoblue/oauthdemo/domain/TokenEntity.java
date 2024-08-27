@@ -35,9 +35,6 @@ public class TokenEntity implements Serializable {
   @Column(name = "access_token")
   private String accessToken;
 
-  @Column(name = "refresh_token")
-  private String refreshToken;
-
   @CreationTimestamp
   @Column(name = "created_at", nullable = false)
   private LocalDateTime createdAt;

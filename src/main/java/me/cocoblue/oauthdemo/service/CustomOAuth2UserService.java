@@ -1,6 +1,12 @@
 package me.cocoblue.oauthdemo.service;
 
+import static java.time.ZoneOffset.UTC;
+
 import jakarta.transaction.Transactional;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.Map;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -52,7 +58,7 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
         UserInfoEntity userInfoEntity = getUser(discordUser);
 
         // 리프레시 토큰 저장
-        saveTokens(userInfoEntity, userRequest, oAuth2User);
+        saveTokens(userInfoEntity, userRequest);
 
         // DefaultOAuth2User로 변환하여 반환
         return new DefaultOAuth2User(
@@ -62,44 +68,22 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
         );
     }
 
-    private void saveTokens(UserInfoEntity user, OAuth2UserRequest userRequest, OAuth2User oAuth2User) {
-        // Principal name (OAuth2User의 고유 식별자)를 사용하여 리프레시 토큰 가져오기
-        String principalName = oAuth2User.getName();
-        log.info("principalName: {}", principalName);
+    private void saveTokens(UserInfoEntity user, OAuth2UserRequest userRequest) {
+        if (userRequest.getAccessToken().getExpiresAt() != null) {
+            Instant expiresAtInstant = userRequest.getAccessToken().getExpiresAt();  // 만료 시간 (Instant)
 
-        // OAuth2AuthorizedClient를 사용하여 Refresh Token을 가져옴
-        OAuth2AuthorizedClient authorizedClient = authorizedClientService.loadAuthorizedClient(
-            userRequest.getClientRegistration().getRegistrationId(),
-            principalName // Principal name을 사용
-        );
+            // 시스템 기본 타임존으로 LocalDateTime 변환
+            LocalDateTime accessTokenExpiresAt = LocalDateTime.ofInstant(expiresAtInstant, ZoneId.systemDefault());
+            log.info("accessTokenExpiresAt (Local Time): {}", accessTokenExpiresAt);
 
-        // authorizedClient가 null이면 예외를 던지거나 에러 로그 출력 후 처리
-        if (authorizedClient == null) {
-            log.warn("Authorized client가 null입니다. 리프레시 토큰이 존재하지 않기 때문에 액세스 토큰만 저장합니다.");
-            TokenEntity tokenEntity = TokenEntity.builder()
-                .user(user)
-                .accessToken(userRequest.getAccessToken().getTokenValue())
-                .build();
-
-            tokenRepository.save(tokenEntity);
-            return;
+            // UTC로 출력하고 싶다면:
+            ZonedDateTime accessTokenExpiresAtUtc = expiresAtInstant.atZone(ZoneId.of("UTC"));
+            log.info("accessTokenExpiresAt (UTC): {}", accessTokenExpiresAtUtc);
         }
 
-        log.info("authorizedClient: {}", authorizedClient.toString());
-        log.info("authorizedClient.getAccessToken(): {}", authorizedClient.getAccessToken());
-        log.info("authorizedClient.getRefreshToken(): {}", authorizedClient.getRefreshToken());
-
-        // 리프레시 토큰을 authorizedClient에서 추출
-        String refreshToken = null;
-        if (authorizedClient.getRefreshToken() != null) {
-            refreshToken = authorizedClient.getRefreshToken().getTokenValue();
-        }
-
-        // 액세스 토큰과 리프레시 토큰을 저장하는 로직
         TokenEntity tokenEntity = TokenEntity.builder()
             .user(user)
             .accessToken(userRequest.getAccessToken().getTokenValue())
-            .refreshToken(refreshToken) // 추출한 리프레시 토큰 저장
             .build();
 
         tokenRepository.save(tokenEntity);
