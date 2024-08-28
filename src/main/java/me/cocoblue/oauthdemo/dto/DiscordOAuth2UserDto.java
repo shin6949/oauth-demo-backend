@@ -33,8 +33,6 @@ public class DiscordOAuth2UserDto {
   private String refreshToken;
 
   public DiscordOAuth2UserDto(Map<String, Object> oauthAttributes) {
-    log.info("oauthAttributes: {}", oauthAttributes);
-
     this.id = (String) oauthAttributes.get("id");
     this.username = (String) oauthAttributes.get("username");
     this.discriminator = (String) oauthAttributes.get("discriminator");

@@ -1,7 +1,5 @@
 package me.cocoblue.oauthdemo.service;
 
-import static java.time.ZoneOffset.UTC;
-
 import jakarta.transaction.Transactional;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -16,8 +14,6 @@ import me.cocoblue.oauthdemo.domain.TokenRepository;
 import me.cocoblue.oauthdemo.domain.UserInfoEntity;
 import me.cocoblue.oauthdemo.domain.UserRepository;
 import me.cocoblue.oauthdemo.dto.DiscordOAuth2UserDto;
-import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
-import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
@@ -34,7 +30,6 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
 
     private final UserRepository userRepository;
     private final TokenRepository tokenRepository;
-    private final OAuth2AuthorizedClientService authorizedClientService;
 
     @Override
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
@@ -49,7 +44,6 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
 
         // Discord OAuth2 API에서 가져온 사용자 정보 (id, username 등)
         Map<String, Object> attributes = oAuth2User.getAttributes();
-        log.info("attributes at loadUser: {}", attributes);
 
         // DiscordOAuth2UserDto로 변환 (DTO 클래스)
         DiscordOAuth2UserDto discordUser = new DiscordOAuth2UserDto(attributes);

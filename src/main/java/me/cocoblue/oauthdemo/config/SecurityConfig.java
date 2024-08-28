@@ -1,23 +1,15 @@
 package me.cocoblue.oauthdemo.config;
 
-//import jakarta.servlet.http.HttpServletRequest;
-
 import lombok.RequiredArgsConstructor;
 import me.cocoblue.oauthdemo.handler.LoginFailureHandler;
 import me.cocoblue.oauthdemo.handler.LoginSuccessHandler;
 import me.cocoblue.oauthdemo.service.CustomOAuth2UserService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.RequestEntity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer.FrameOptionsConfig;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.oauth2.client.endpoint.DefaultAuthorizationCodeTokenResponseClient;
-import org.springframework.security.oauth2.client.endpoint.OAuth2AccessTokenResponseClient;
-import org.springframework.security.oauth2.client.endpoint.OAuth2AuthorizationCodeGrantRequest;
-import org.springframework.security.oauth2.client.endpoint.OAuth2AuthorizationCodeGrantRequestEntityConverter;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
@@ -34,15 +26,14 @@ public class SecurityConfig {
         .headers(headers -> headers
             .frameOptions(FrameOptionsConfig::disable)
         )
-        .sessionManagement(sessions -> sessions.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
+        .logout(AbstractHttpConfigurer::disable)
+        .sessionManagement(sessions -> sessions.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         .oauth2Login(oauth2 -> oauth2
-            .tokenEndpoint(tokenEndpoint ->
-                tokenEndpoint.accessTokenResponseClient(accessTokenResponseClient())
-            )
             .userInfoEndpoint(userInfoEndpoint ->
                 userInfoEndpoint.userService(customOAuth2UserService)
             )
             .successHandler(loginSuccessHandler())
+            .failureHandler(loginFailureHandler())
         )
         .authorizeHttpRequests(authorize -> authorize
             .requestMatchers("/", "/css/**", "/images/**", "/js/**", "/favicon.ico", "/h2-console/**").permitAll()
@@ -60,36 +51,5 @@ public class SecurityConfig {
   @Bean
   public LoginFailureHandler loginFailureHandler() {
     return new LoginFailureHandler();
-  }
-
-
-  @Bean
-  public OAuth2AccessTokenResponseClient<OAuth2AuthorizationCodeGrantRequest> accessTokenResponseClient() {
-    DefaultAuthorizationCodeTokenResponseClient client = new DefaultAuthorizationCodeTokenResponseClient();
-
-    client.setRequestEntityConverter(new OAuth2AuthorizationCodeGrantRequestEntityConverter() {
-      @Override
-      public RequestEntity<?> convert(OAuth2AuthorizationCodeGrantRequest oauth2Request) {
-        return withUserAgent(super.convert(oauth2Request));
-      }
-    });
-
-    return client;
-  }
-
-  private RequestEntity<?> withUserAgent(RequestEntity<?> requestEntity) {
-    return new RequestEntity<>(
-        requestEntity.getBody(),
-        addUserAgentHeader(requestEntity.getHeaders()),
-        requestEntity.getMethod(),
-        requestEntity.getUrl()
-    );
-  }
-
-  private HttpHeaders addUserAgentHeader(HttpHeaders headers) {
-    HttpHeaders newHeaders = new HttpHeaders();
-    newHeaders.putAll(headers);
-    newHeaders.set("User-Agent", "DISCORD_BOT_USER_AGENT");
-    return newHeaders;
   }
 }
